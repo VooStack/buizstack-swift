@@ -46,6 +46,10 @@ final class ViewReplayCaptureTests: XCTestCase {
         XCTAssertEqual(String(decoding: video.data[4..<8], as: UTF8.self), "ftyp")
         let url = FileManager.default.temporaryDirectory.appendingPathComponent("buizstack_ios_probe.mp4")
         try video.data.write(to: url)
+        let snapshots = capture.snapshotTimes.map { $0 * 1000 }
+        let collects = capture.collectTimes.map { $0 * 1000 }
+        print("BUIZSTACK_IOS_TIMINGS snapshot_ms=\(snapshots) collect_ms=\(collects)")
+        XCTAssertLessThan(collects.max() ?? 0, 2)
         print("BUIZSTACK_IOS_VIDEO \(url.path) \(video.data.count) \(video.width)x\(video.height)")
     }
 }

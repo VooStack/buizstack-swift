@@ -45,7 +45,7 @@ on any UIView, and use `.buizStackReplayMask()` on SwiftUI views, whose text and
 views and so are not masked automatically.
 
 The main thread collects mask rectangles (2 ms budget, abandoned beyond it) and draws a 360 px wide
-snapshot about once a second, waiting while the user is touching the screen (up to 3 seconds). Encoding to
+snapshot about once a second, taken only when the main run loop is about to go idle and never while the user is touching or scrolling (touches defer it up to 3 seconds). Encoding to
 H.264 runs on a background queue, and capture stops while the app is not active.
 
 ## Develop

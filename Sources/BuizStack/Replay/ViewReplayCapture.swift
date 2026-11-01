@@ -21,6 +21,7 @@ final class ViewReplayCapture: ReplayCapture {
     private var encoder: ReplayEncoder?
     private var active = false
     private var waitingSince: Date?
+    private var idleObserver: CFRunLoopObserver?
     private(set) var lastTouch = Date.distantPast
     private(set) var snapshotTimes: [TimeInterval] = []
     private(set) var collectTimes: [TimeInterval] = []
@@ -43,6 +44,7 @@ final class ViewReplayCapture: ReplayCapture {
             active = false
             timer?.invalidate()
             timer = nil
+            removeIdleObserver()
         }
         if Thread.isMainThread { stop() } else { DispatchQueue.main.sync(execute: stop) }
         return encoderQueue.sync {
@@ -58,6 +60,7 @@ final class ViewReplayCapture: ReplayCapture {
             active = false
             timer?.invalidate()
             timer = nil
+            removeIdleObserver()
         }
         encoderQueue.async { [self] in
             encoder?.cancel()
@@ -66,6 +69,17 @@ final class ViewReplayCapture: ReplayCapture {
     }
 
     private func tick() {
+        guard active, idleObserver == nil else { return }
+        let observer = CFRunLoopObserverCreateWithHandler(nil, CFRunLoopActivity.beforeWaiting.rawValue, false, 0) { [weak self] observer, _ in
+            if let observer { CFRunLoopRemoveObserver(CFRunLoopGetMain(), observer, .commonModes) }
+            self?.idleObserver = nil
+            self?.capture()
+        }
+        idleObserver = observer
+        CFRunLoopAddObserver(CFRunLoopGetMain(), observer, .commonModes)
+    }
+
+    private func capture() {
         guard active, isActive(), let window = window(), !window.bounds.isEmpty else { return }
         let now = Date()
         waitingSince = waitingSince ?? now
@@ -98,6 +112,11 @@ final class ViewReplayCapture: ReplayCapture {
             }
             encoder?.frame(cgImage, masks: scaled, at: now)
         }
+    }
+
+    private func removeIdleObserver() {
+        if let idleObserver { CFRunLoopRemoveObserver(CFRunLoopGetMain(), idleObserver, .commonModes) }
+        idleObserver = nil
     }
 
     private func record(_ samples: inout [TimeInterval], _ value: TimeInterval) {
