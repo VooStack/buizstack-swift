@@ -3,6 +3,13 @@
 Errors, crashes, hangs, product events, screens and session replay from native iOS apps (UIKit and
 SwiftUI) to [BuizStack](https://buizstack.com). iOS 15 or later, Swift Package Manager.
 
+In Xcode choose File > Add Package Dependencies and enter `https://github.com/VooStack/buizstack-swift`, or in
+`Package.swift`:
+
+```swift
+.package(url: "https://github.com/VooStack/buizstack-swift", from: "0.1.0")
+```
+
 ```swift
 import BuizStack
 
@@ -47,5 +54,5 @@ H.264 runs on a background queue, and capture stops while the app is not active.
 xcodebuild test -scheme BuizStack -destination 'platform=iOS Simulator,name=iPhone 17'
 ```
 
-Swift Package Manager needs `Package.swift` at a repository's root, so apps consume this package from a
-dedicated repository (or a local path) rather than from this monorepo.
+The source lives in the BuizStack monorepo under `sdks/ios` and is mirrored to
+[VooStack/buizstack-swift](https://github.com/VooStack/buizstack-swift) for Swift Package Manager.
